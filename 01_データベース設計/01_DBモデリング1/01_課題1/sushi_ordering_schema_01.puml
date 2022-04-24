@@ -65,7 +65,6 @@ entity "Orders" as Orders {
   * order_id : uuid
   --
   * customer_id : uuid <<FK>>
-  * tax_id : uuid <<FK>>
     total_fee : integer
     paid : boolean
   * created_at : timestamp
