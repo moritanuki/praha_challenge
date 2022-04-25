@@ -63,6 +63,7 @@ entity "Orders" as Orders {
   --
   * customer_id : uuid <<FK>>
     total_fee : integer
+    total_quantity : smallint
     paid_at : timestamp
   * is_delivery : boolean
     delivered_at : timestamp
