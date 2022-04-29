@@ -1,0 +1,119 @@
+@startuml sushi_ordering_schema_03
+
+skinparam {
+  ' カーディナリティ斜め対策
+   linetype ortho
+}
+
+' 顧客マスタ
+entity "Customers" as Customers {
+  * customer_id : uuid
+  --
+  * name : varchar
+  * phone_number : varchar
+    postal_code : varchar
+    address : varchar
+  * created_at : timestamp
+    updated_at : timestamp
+    deleted_at : timestamp
+}
+
+note left of Customers
+  <b>補足</b>
+  ・postal_code（配送先の郵便番号）を追加。
+  ・address（配送先の住所）を追加。
+end note
+
+' 商品マスタ
+entity "Products" as Products {
+  * product_id : uuid
+  --
+  * product_name : varchar
+    type : enum
+  * created_at : timestamp
+    updated_at : timestamp
+    deleted_at : timestamp
+}
+
+' 商品金額テーブル
+entity "Prices" as Prices {
+  * price_id : uuid
+  --
+  * product_id : uuid <<FK>>
+  * tax_id : uuid <<FK>>
+  * price : integer
+  * started_at : timestamp
+    finished_at : timestamp
+    updated_at : timestamp
+    deleted_at : timestamp
+}
+
+' 消費税マスタ
+entity "Taxes" as Taxes {
+  * tax_id : uuid
+  --
+  * tax_rate : real
+  * started_at : timestamp
+    finished_at : timestamp
+}
+
+' 注文テーブル
+entity "Orders" as Orders {
+  * order_id : uuid
+  --
+  * customer_id : uuid <<FK>>
+    total_fee : integer
+    total_quantity : smallint
+    paid_at : timestamp
+  * is_delivery : boolean
+    delivered_at : timestamp
+  * created_at : timestamp
+    updated_at : timestamp
+    deleted_at : timestamp
+}
+
+note left of Orders
+  <b>補足</b>
+  ・is_delivery（配送の有無）を追加。
+  ・delivered_at（配送完了日時）を追加。
+end note
+
+entity "OrderDetails" as OrderDetails {
+  * order_detail_id : uuid
+  --
+  * order_id : uuid <<FK>>
+  * product_id : uuid <<FK>>
+  * price_id : uuid <<FK>>
+  * order_detail_option_id : uuid <<FK>>
+    subtotal_fee : integer
+    quantity : smallint
+  * created_at : timestamp
+    updated_at : timestamp
+    deleted_at : timestamp
+}
+
+entity "OrderDetailOptions" as OrderDetailOptions {
+  * order_detail_option_id : uuid
+  --
+  * order_detail_id : uuid <<FK>>
+  * without_wasabi : boolean
+  * rice_size : enum
+  * created_at : timestamp
+    updated_at : timestamp
+    deleted_at : timestamp
+}
+
+Customers ||..o{ Orders
+Orders ||..|{ OrderDetails
+OrderDetails ||..|| OrderDetailOptions
+OrderDetails }o..|| Products
+OrderDetails ||..|| Prices
+Products ||..o{ Prices
+Prices }o..|| Taxes
+
+note as note1
+  <b>仕様変更</b>
+  配送での注文が可能となった場合。
+end note
+
+@enduml
