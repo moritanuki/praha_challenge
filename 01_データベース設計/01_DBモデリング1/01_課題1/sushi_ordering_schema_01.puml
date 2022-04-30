@@ -66,7 +66,7 @@ entity "ProductItems" as ProductItems {
 
 note bottom of ProductItems
   ProductItems追加
-  （たまご一皿には、単品のたまご一貫*2が含まれる）
+  たまご一皿(product)には、Itemsのたまご一貫*2が含まれる
 end note
 
 ' 単品
@@ -83,7 +83,7 @@ note top of Items
   Items追加
   例えばお好み寿司は一皿単位。
   なので、これも単品とは言えないのでは？と考えた。
-  （たまご一皿には、単品のたまご一貫*2が含まれる）
+  たまご一皿(product)には、Itemsのたまご一貫*2が含まれる
 end note
 
 ' 消費税
