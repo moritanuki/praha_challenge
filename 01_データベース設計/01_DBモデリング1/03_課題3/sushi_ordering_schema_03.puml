@@ -11,6 +11,18 @@ entity "Customers" as Customers {
   --
   * name
   * phone_number
+    delivery_address_id<<FK>>
+  * created_at
+    updated_at
+    deleted_at
+}
+
+' 顧客マスタ
+entity "DeliveryAddresses" as DeliveryAddresses {
+  * delivery_address_id
+  --
+  * name
+    phone_number
     postal_code
     address
   * created_at
@@ -18,18 +30,49 @@ entity "Customers" as Customers {
     deleted_at
 }
 
-note left of Customers
-  <b>補足</b>
-  ・postal_code（配送先の郵便番号）を追加。
-  ・address（配送先の住所）を追加。
+note bottom of DeliveryAddresses
+  レビューを受け、配送先の住所をCustomersとは分けた。
 end note
 
-' 商品マスタ
+' 単品商品マスタ
 entity "Products" as Products {
   * product_id
   --
   * product_name
-    type
+  * created_at
+    price_id<<FK>>
+    category_id<<FK>>
+    updated_at
+    deleted_at
+}
+
+' 商品カテゴリマスタ
+entity "Categorys" as Categorys {
+  * category_id
+  --
+  * category_name
+  * created_at
+    updated_at
+    deleted_at
+}
+
+' セット商品マスタ
+entity "SetProducts" as SetProducts {
+  * product_id
+  --
+  * product_name
+  * created_at
+    price_id<<FK>>
+    category
+    updated_at
+    deleted_at
+}
+
+' セット商品カテゴリマスタ
+entity "SetCategorys" as SetCategorys {
+  * category_id
+  --
+  * category_name
   * created_at
     updated_at
     deleted_at
@@ -62,35 +105,30 @@ entity "Orders" as Orders {
   * order_id
   --
   * customer_id<<FK>>
-    total_fee
     total_quantity
     paid_at
-  * is_delivery
-    delivered_at
   * created_at
     updated_at
     deleted_at
 }
-
-note left of Orders
-  <b>補足</b>
-  ・is_delivery（配送の有無）を追加。
-  ・delivered_at（配送完了日時）を追加。
-end note
 
 entity "OrderDetails" as OrderDetails {
   * order_detail_id
   --
   * order_id<<FK>>
   * product_id<<FK>>
-  * price_id<<FK>>
-  * order_detail_option_id<<FK>>
-    subtotal_fee
+    order_detail_option_id<<FK>>
     quantity
   * created_at
     updated_at
     deleted_at
 }
+
+note top of OrderDetails
+  without_wasabi（さびぬき）オプションは元々ここにあった。
+  ただ、しゃりの大小以外にもオプションが増えていく可能性を考え
+  別テーブル（OrderDetailOptions）に抜き出した。
+end note
 
 entity "OrderDetailOptions" as OrderDetailOptions {
   * order_detail_option_id
@@ -103,16 +141,19 @@ entity "OrderDetailOptions" as OrderDetailOptions {
     deleted_at
 }
 
+Customers ||..o{ DeliveryAddresses
 Customers ||..o{ Orders
 Orders ||..|{ OrderDetails
-OrderDetails ||..|| OrderDetailOptions
+OrderDetails }o..|| OrderDetailOptions
 OrderDetails }o..|| Products
-OrderDetails ||..|| Prices
+OrderDetails }o..|| SetProducts
 Products ||..o{ Prices
+SetProducts ||..o{ Prices
+Products }o..|| Categorys
+SetProducts }o..|| SetCategorys
 Prices }o..|| Taxes
 
 note as note1
-  <b>仕様変更</b>
   配送での注文が可能となった場合。
 end note
 
