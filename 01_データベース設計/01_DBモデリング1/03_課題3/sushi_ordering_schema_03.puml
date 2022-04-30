@@ -5,7 +5,7 @@ skinparam {
    linetype ortho
 }
 
-' 顧客マスタ
+' 顧客
 entity "Customers" as Customers {
   * customer_id
   --
@@ -17,7 +17,7 @@ entity "Customers" as Customers {
     deleted_at
 }
 
-' 顧客マスタ
+' 配送先情報
 entity "DeliveryAddresses" as DeliveryAddresses {
   * delivery_address_id
   --
@@ -34,7 +34,7 @@ note bottom of DeliveryAddresses
   レビューを受け、配送先の住所をCustomersとは分けた。
 end note
 
-' 単品商品マスタ
+' 商品
 entity "Products" as Products {
   * product_id
   --
@@ -46,7 +46,7 @@ entity "Products" as Products {
     deleted_at
 }
 
-' 商品カテゴリマスタ
+' 商品カテゴリ
 entity "Categorys" as Categorys {
   * category_id
   --
@@ -56,29 +56,7 @@ entity "Categorys" as Categorys {
     deleted_at
 }
 
-' セット商品マスタ
-entity "SetProducts" as SetProducts {
-  * product_id
-  --
-  * product_name
-  * created_at
-    price_id<<FK>>
-    category
-    updated_at
-    deleted_at
-}
-
-' セット商品カテゴリマスタ
-entity "SetCategorys" as SetCategorys {
-  * category_id
-  --
-  * category_name
-  * created_at
-    updated_at
-    deleted_at
-}
-
-' 商品金額テーブル
+' 商品金額
 entity "Prices" as Prices {
   * price_id
   --
@@ -91,7 +69,25 @@ entity "Prices" as Prices {
     deleted_at
 }
 
-' 消費税マスタ
+' 商品_単品
+entity "ProductItems" as ProductItems {
+  * product_id<<FK>>
+  * item_id<<FK>>
+  --
+  * item_quantity
+}
+
+' 単品
+entity "Items" as Items {
+  * item_id
+  --
+  * item_name
+  * created_at
+    updated_at
+    deleted_at
+}
+
+' 消費税
 entity "Taxes" as Taxes {
   * tax_id
   --
@@ -100,7 +96,7 @@ entity "Taxes" as Taxes {
     finished_at
 }
 
-' 注文テーブル
+' 注文
 entity "Orders" as Orders {
   * order_id
   --
@@ -118,18 +114,11 @@ entity "OrderDetails" as OrderDetails {
   * order_id<<FK>>
   * product_id<<FK>>
     order_detail_option_id<<FK>>
-  * type
     quantity
   * created_at
     updated_at
     deleted_at
 }
-
-note top of OrderDetails
-  without_wasabi（さびぬき）オプションは元々ここにあった。
-  ただ、しゃりの大小以外にもオプションが増えていく可能性を考え
-  別テーブル（OrderDetailOptions）に抜き出した。
-end note
 
 entity "OrderDetailOptions" as OrderDetailOptions {
   * order_detail_option_id
@@ -147,11 +136,10 @@ Customers ||..o{ Orders
 Orders ||..|{ OrderDetails
 OrderDetails }o..|| OrderDetailOptions
 OrderDetails }o..|| Products
-OrderDetails }o..|| SetProducts
-Products ||..o{ Prices
-SetProducts ||..o{ Prices
+Products ||..o{ ProductItems
+Items ||..o{ ProductItems
 Products }o..|| Categorys
-SetProducts }o..|| SetCategorys
+Products }o..|| Prices
 Prices }o..|| Taxes
 
 note as note1
