@@ -7,80 +7,103 @@ skinparam {
 
 ' 顧客マスタ
 entity "Customers" as Customers {
-  * customer_id : uuid
+  * customer_id
   --
-  * name : varchar
-  * phone_number : varchar
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * name
+  * phone_number
+  * created_at
+    updated_at
+    deleted_at
 }
 
-' 商品マスタ
+' 単品商品マスタ
 entity "Products" as Products {
-  * product_id : uuid
+  * product_id
   --
-  * product_name : varchar
-    type : enum
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * product_name
+  * created_at
+    price_id<<FK>>
+    category_id<<FK>>
+    updated_at
+    deleted_at
 }
 
-note left of Products
-  <b>補足</b>
-  ・type（単品かセットか）を追加。
-  ・上記により、単品での集計が可能となった。
-  ・種類が増える可能性を考え、enum（列挙型）とした。
-end note
+' 商品カテゴリマスタ
+entity "Categorys" as Categorys {
+  * category_id
+  --
+  * category_name
+  * created_at
+    updated_at
+    deleted_at
+}
+
+' セット商品マスタ
+entity "SetProducts" as SetProducts {
+  * product_id
+  --
+  * product_name
+  * created_at
+    price_id<<FK>>
+    category
+    updated_at
+    deleted_at
+}
+
+' セット商品カテゴリマスタ
+entity "SetCategorys" as SetCategorys {
+  * category_id
+  --
+  * category_name
+  * created_at
+    updated_at
+    deleted_at
+}
 
 ' 商品金額テーブル
 entity "Prices" as Prices {
-  * price_id : uuid
+  * price_id
   --
-  * product_id : uuid <<FK>>
-  * tax_id : uuid <<FK>>
-  * price : integer
-  * started_at : timestamp
-    finished_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * product_id<<FK>>
+  * tax_id<<FK>>
+  * price
+  * started_at
+    finished_at
+    updated_at
+    deleted_at
 }
 
 ' 消費税マスタ
 entity "Taxes" as Taxes {
-  * tax_id : uuid
+  * tax_id
   --
-  * tax_rate : real
-  * started_at : timestamp
-    finished_at : timestamp
+  * tax_rate
+  * started_at
+    finished_at
 }
 
 ' 注文テーブル
 entity "Orders" as Orders {
-  * order_id : uuid
+  * order_id
   --
-  * customer_id : uuid <<FK>>
-    total_fee : integer
-    total_quantity : smallint
-    paid_at : timestamp
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * customer_id<<FK>>
+    total_quantity
+    paid_at
+  * created_at
+    updated_at
+    deleted_at
 }
 
 entity "OrderDetails" as OrderDetails {
-  * order_detail_id : uuid
+  * order_detail_id
   --
-  * order_id : uuid <<FK>>
-  * product_id : uuid <<FK>>
-  * price_id : uuid <<FK>>
-  * order_detail_option_id : uuid <<FK>>
-    subtotal_fee : integer
-    quantity : smallint
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * order_id<<FK>>
+  * product_id<<FK>>
+    order_detail_option_id<<FK>>
+    quantity
+  * created_at
+    updated_at
+    deleted_at
 }
 
 note top of OrderDetails
@@ -91,22 +114,31 @@ note top of OrderDetails
 end note
 
 entity "OrderDetailOptions" as OrderDetailOptions {
-  * order_detail_option_id : uuid
+  * order_detail_option_id
   --
-  * order_detail_id : uuid <<FK>>
-  * without_wasabi : boolean
-  * rice_size : enum
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * order_detail_id<<FK>>
+  * without_wasabi
+  * rice_size
+  * created_at
+    updated_at
+    deleted_at
 }
 
 Customers ||..o{ Orders
 Orders ||..|{ OrderDetails
-OrderDetails ||..|| OrderDetailOptions
+OrderDetails }o..|| OrderDetailOptions
 OrderDetails }o..|| Products
-OrderDetails ||..|| Prices
+OrderDetails }o..|| SetProducts
 Products ||..o{ Prices
+SetProducts ||..o{ Prices
+Products }o..|| Categorys
+SetProducts }o..|| SetCategorys
 Prices }o..|| Taxes
+
+note as note1
+  SetProductsを追加した。
+  テーブルを分けてしまった方が集計が楽なのではないか
+  と、議題に上がったのを受けて。
+end note
 
 @enduml

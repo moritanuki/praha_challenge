@@ -7,45 +7,83 @@ skinparam {
 
 ' 顧客マスタ
 entity "Customers" as Customers {
-  * customer_id : uuid
+  * customer_id
   --
-  * name : varchar
-  * phone_number : varchar
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * name
+  * phone_number
+  * created_at
+    updated_at
+    deleted_at
 }
 
-note top of Customers
-  <b>補足</b>
-  ・同姓同名の可能性があるためphone_numberも必須とする。
+' 単品商品マスタ
+entity "Products" as Products {
+  * product_id
+  --
+  * product_name
+  * created_at
+    price_id<<FK>>
+    category_id<<FK>>
+    updated_at
+    deleted_at
+}
+
+' 商品カテゴリマスタ
+entity "Categorys" as Categorys {
+  * category_id
+  --
+  * category_name
+  * created_at
+    updated_at
+    deleted_at
+}
+
+note bottom of Categorys
+  Categorys追加
+  単品商品は「一皿」のみだが、今後増えることも考慮して
 end note
 
-' 商品マスタ
-entity "Products" as Products {
-  * product_id : uuid
+' セット商品マスタ
+entity "SetProducts" as SetProducts {
+  * product_id
   --
-  * product_name : varchar
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * product_name
+  * created_at
+    price_id<<FK>>
+    category
+    updated_at
+    deleted_at
 }
+
+' セット商品カテゴリマスタ
+entity "SetCategorys" as SetCategorys {
+  * category_id
+  --
+  * category_name
+  * created_at
+    updated_at
+    deleted_at
+}
+
+note bottom of SetCategorys
+  SetCategorys追加
+  （盛り込み、にぎりなど）
+end note
 
 ' 商品金額テーブル
 entity "Prices" as Prices {
-  * price_id : uuid
+  * price_id
   --
-  * product_id : uuid <<FK>>
-  * tax_id : uuid <<FK>>
-  * price : integer
-  * started_at : timestamp
-    finished_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * product_id<<FK>>
+  * tax_id<<FK>>
+  * price
+  * started_at
+    finished_at
+    updated_at
+    deleted_at
 }
 
 note left of Prices
-  <b>補足</b>
   値上げや値下げなど、頻繁に変更がある可能性があるため
   商品マスタとは別で管理。（Sale時の一時的値下げなど）
   同じproductでも期間別に複数もてる想定。
@@ -53,70 +91,63 @@ end note
 
 ' 消費税マスタ
 entity "Taxes" as Taxes {
-  * tax_id : uuid
+  * tax_id
   --
-  * tax_rate : real
-  * started_at : timestamp
-    finished_at : timestamp
+  * tax_rate
+  * started_at
+    finished_at
 }
 
 ' 注文テーブル
 entity "Orders" as Orders {
-  * order_id : uuid
+  * order_id
   --
-  * customer_id : uuid <<FK>>
-    total_fee : integer
-    total_quantity : smallint
-    paid_at : timestamp
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * customer_id<<FK>>
+    total_quantity
+    paid_at
+  * created_at
+    updated_at
+    deleted_at
 }
 
 note left of Orders
-  <b>補足</b>
-  total_fee（合計金額）を入れてみた。
-  <b>理由</b>
-  ・paid_at（支払い完了日）がnullではない場合、金額が変更することはほぼないと考える。
-  ・合計額の参照は高頻度に起こると考える（売上管理やレシート発行など）。
-  ・上記のため、毎回別テーブル参照して計算は処理が遅くなる要因と考えた。
+  total_fee（合計金額）を削除した。
+  パフォーマンスが出せるかと思ったが、
+  そんなに変わらないかもという疑惑が浮上したため。
 end note
 
 entity "OrderDetails" as OrderDetails {
-  * order_detail_id : uuid
+  * order_detail_id
   --
-  * order_id : uuid <<FK>>
-  * product_id : uuid <<FK>>
-  * price_id : uuid <<FK>>
-    subtotal_fee : integer
-    quantity : smallint
-  * without_wasabi : boolean
-  * created_at : timestamp
-    updated_at : timestamp
-    deleted_at : timestamp
+  * order_id<<FK>>
+  * product_id<<FK>>
+    quantity
+  * without_wasabi
+  * created_at
+    updated_at
+    deleted_at
 }
 
 note top of OrderDetails
-  <b>補足</b>
-  subtotal_fee（小計）をここで出しておくことにより
-  Ordersではsubtotal_feeを合計するだけでtotal_fee（合計金額）が出せると考えた。
+  subtotal_fee（小計金額）を削除した。
+  パフォーマンスが出せるかと思ったが、
+  そんなに変わらないかもという疑惑が浮上したため。
 end note
 
 Customers ||..o{ Orders
 Orders ||..|{ OrderDetails
 OrderDetails }o..|| Products
-OrderDetails ||..|| Prices
+OrderDetails }o..|| SetProducts
 Products ||..o{ Prices
+SetProducts ||..o{ Prices
+Products }o..|| Categorys
+SetProducts }o..|| SetCategorys
 Prices }o..|| Taxes
 
 note as note1
-  <b>補足</b>
-  全テーブルにidを付与して主キーとした。
-  <b>理由</b>
-  ・id１つのみで外部参照できる利点があると考えた。
-  ・他の値と違って変更される可能性がない。
-
-  でも本当に必要か？が、よくわかっていない。
+  SetProductsを追加した。
+  テーブルを分けてしまった方が集計が楽なのではないか
+  と、議題に上がったのを受けて。
 end note
 
 @enduml
