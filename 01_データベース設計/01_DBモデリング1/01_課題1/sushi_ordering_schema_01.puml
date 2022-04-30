@@ -121,6 +121,7 @@ entity "OrderDetails" as OrderDetails {
   --
   * order_id<<FK>>
   * product_id<<FK>>
+  * type
     quantity
   * without_wasabi
   * created_at
@@ -129,9 +130,9 @@ entity "OrderDetails" as OrderDetails {
 }
 
 note top of OrderDetails
-  subtotal_fee（小計金額）を削除した。
-  パフォーマンスが出せるかと思ったが、
-  そんなに変わらないかもという疑惑が浮上したため。
+  type（単品かセットか）追加。
+  OrderDetailsのproduct_idを探す時、
+  どちらのテーブルにあるかわからないなと思ったので。
 end note
 
 Customers ||..o{ Orders
