@@ -100,6 +100,7 @@ entity "OrderDetails" as OrderDetails {
   * order_id<<FK>>
   * product_id<<FK>>
     order_detail_option_id<<FK>>
+  * type
     quantity
   * created_at
     updated_at
