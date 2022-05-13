@@ -5,7 +5,7 @@ skinparam {
    linetype ortho
 }
 
-' 顧客マスタ
+' 顧客
 entity "Customers" as Customers {
   * customer_id
   --
@@ -16,7 +16,7 @@ entity "Customers" as Customers {
     deleted_at
 }
 
-' 単品商品マスタ
+' 商品
 entity "Products" as Products {
   * product_id
   --
@@ -28,7 +28,7 @@ entity "Products" as Products {
     deleted_at
 }
 
-' 商品カテゴリマスタ
+' 商品カテゴリ
 entity "Categorys" as Categorys {
   * category_id
   --
@@ -40,37 +40,10 @@ entity "Categorys" as Categorys {
 
 note bottom of Categorys
   Categorys追加
-  単品商品は「一皿」のみだが、今後増えることも考慮して
+  （セットもしくはお好みすし）
 end note
 
-' セット商品マスタ
-entity "SetProducts" as SetProducts {
-  * product_id
-  --
-  * product_name
-  * created_at
-    price_id<<FK>>
-    category
-    updated_at
-    deleted_at
-}
-
-' セット商品カテゴリマスタ
-entity "SetCategorys" as SetCategorys {
-  * category_id
-  --
-  * category_name
-  * created_at
-    updated_at
-    deleted_at
-}
-
-note bottom of SetCategorys
-  SetCategorys追加
-  （盛り込み、にぎりなど）
-end note
-
-' 商品金額テーブル
+' 商品金額
 entity "Prices" as Prices {
   * price_id
   --
@@ -83,13 +56,37 @@ entity "Prices" as Prices {
     deleted_at
 }
 
-note left of Prices
-  値上げや値下げなど、頻繁に変更がある可能性があるため
-  商品マスタとは別で管理。（Sale時の一時的値下げなど）
-  同じproductでも期間別に複数もてる想定。
+' 商品_単品
+entity "ProductItems" as ProductItems {
+  * product_id<<FK>>
+  * item_id<<FK>>
+  --
+  * item_quantity
+}
+
+note bottom of ProductItems
+  ProductItems追加
+  たまご一皿(product)には、Itemsのたまご一貫*2が含まれる
 end note
 
-' 消費税マスタ
+' 単品
+entity "Items" as Items {
+  * item_id
+  --
+  * item_name
+  * created_at
+    updated_at
+    deleted_at
+}
+
+note top of Items
+  Items追加
+  例えばお好み寿司は一皿単位。
+  なので、これも単品とは言えないのでは？と考えた。
+  たまご一皿(product)には、Itemsのたまご一貫*2が含まれる
+end note
+
+' 消費税
 entity "Taxes" as Taxes {
   * tax_id
   --
@@ -98,7 +95,7 @@ entity "Taxes" as Taxes {
     finished_at
 }
 
-' 注文テーブル
+' 注文
 entity "Orders" as Orders {
   * order_id
   --
@@ -121,34 +118,30 @@ entity "OrderDetails" as OrderDetails {
   --
   * order_id<<FK>>
   * product_id<<FK>>
-  * type
     quantity
+  * created_at
+    updated_at
+    deleted_at
+}
+
+entity "OrderDetailOptions" as OrderDetailOptions {
+  * order_detail_option_id
+  --
+  * order_detail_id<<FK>>
   * without_wasabi
   * created_at
     updated_at
     deleted_at
 }
 
-note top of OrderDetails
-  type（単品かセットか）追加。
-  OrderDetailsのproduct_idを探す時、
-  どちらのテーブルにあるかわからないなと思ったので。
-end note
-
 Customers ||..o{ Orders
 Orders ||..|{ OrderDetails
+OrderDetails }o..|| OrderDetailOptions
 OrderDetails }o..|| Products
-OrderDetails }o..|| SetProducts
-Products ||..o{ Prices
-SetProducts ||..o{ Prices
+Products ||..o{ ProductItems
+Items ||..o{ ProductItems
 Products }o..|| Categorys
-SetProducts }o..|| SetCategorys
+Products }o..|| Prices
 Prices }o..|| Taxes
-
-note as note1
-  SetProductsを追加した。
-  テーブルを分けてしまった方が集計が楽なのではないか
-  と、議題に上がったのを受けて。
-end note
 
 @enduml
