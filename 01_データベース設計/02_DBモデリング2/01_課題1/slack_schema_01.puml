@@ -19,11 +19,10 @@ entity "チャネル" as チャネル {
 }
 
 entity "所属" as 所属 {
-  所属ID
-  --
-  脱退フラグ
   チャネルID(FK)
   ユーザーID(FK)
+  --
+  脱退フラグ
 }
 
 note left of 所属
